@@ -3,13 +3,16 @@ using SweetBakeryApp.Services;
 
 MenuService menuService = new();
 CashierService cashierService = new();
+KitchenService kitchenService = new();
 bool isRunning = true;
 
 while (isRunning)
 {
     Console.WriteLine("\n=== SWEET BAKERY: BUKU MENU TOKO ===");
     Console.WriteLine("1. Lihat Katalog Menu");
-    Console.WriteLine("2. Tambah Menu Baru");
+    Console.WriteLine("2. Tambah Menu Baru (Admin)");
+    Console.WriteLine("3. Buat Pesanan Baru (Kasir)");
+    Console.WriteLine("4. Lihat Daftar Antrian Pesanan");
     Console.WriteLine("0. Keluar");
     Console.Write("Pilih menu: ");
 
@@ -88,6 +91,78 @@ while (isRunning)
             else
             {
                 Console.WriteLine("✗ Gagal: Jumlah pesanan harus berupa angka bulat positif.");
+            }
+            break;
+        case "4":
+            Console.WriteLine("\n--- ANTREAN PESANAN AKTIF ---");
+            var orders = cashierService.GetActiveOrders();
+
+            if (orders.Count == 0)
+            {
+                Console.WriteLine("Belum ada pesanan aktif.");
+                break;
+            }
+
+            foreach (var order in orders)
+            {
+                string ticketCode = order.Id.ToString()[..8].ToUpper();
+                Console.WriteLine($"[{ticketCode}] {order.Item.Name} x{order.Quantity} | Rp{order.TotalPrice:N0} | Status: {order.Status}");
+            }
+            break;
+        case "5":
+            Console.WriteLine("\n--- DAPUR: PROSES PESANAN ---");
+            var pendingOrders = cashierService.GetActiveOrders()
+                .Where(o => o.Status == OrderStatus.Pending)
+                .ToList();
+
+            if (pendingOrders.Count == 0)
+            {
+                Console.WriteLine("Tidak ada antrean pesanan yang perlu dimasak.");
+                break;
+            }
+
+            Console.WriteLine("Pilih tiket pesanan:");
+            for (int i = 0; i < pendingOrders.Count; i++)
+            {
+                var ord = pendingOrders[i];
+                string ticketId = ord.Id.ToString()[..8].ToUpper();
+                Console.WriteLine($"{i + 1}. [{ticketId}] {ord.Item.Name} x{ord.Quantity}");
+            }
+
+            Console.Write("Pilih nomor antrean: ");
+            if (int.TryParse(Console.ReadLine(), out int orderIndex) && orderIndex >= 1 && orderIndex <= pendingOrders.Count)
+            {
+                var chosenTicket = pendingOrders[orderIndex - 1];
+
+                Console.WriteLine("\nPilih Metode Pengolahan:");
+                Console.WriteLine("1. Panggang Oven (BakeInOven)");
+                Console.WriteLine("2. Kukus (Steam)");
+                Console.WriteLine("3. Dinginkan Kulkas (Chill)");
+                Console.Write("Metode: ");
+
+                if (Enum.TryParse(Console.ReadLine(), out CookingMethod method) && Enum.IsDefined(method))
+                {
+                    var result = kitchenService.CookOrder(chosenTicket, method);
+
+                    Console.WriteLine("\n[Simulasi Dapur: Meracik Bahan Baku]");
+                    foreach (var ing in result.UsedIngredients)
+                    {
+                        Console.WriteLine($"-> Mengambil {ing.Name}: {ing.AmountInGrams} gram");
+                    }
+
+                    Console.WriteLine($"\n✓ Sukses! Produk \"{result.Product.Name}\" selesai diproses.");
+                    Console.WriteLine($"Metode  : {result.Product.Method}");
+                    Console.WriteLine($"Waktu   : {result.Product.PreparedAt:HH:mm:ss}");
+                    Console.WriteLine($"Status  : Tiket antrean berubah menjadi {chosenTicket.Status}");
+                }
+                else
+                {
+                    Console.WriteLine("✗ Metode memasak tidak valid.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("✗ Nomor antrean tidak valid.");
             }
             break;
 
