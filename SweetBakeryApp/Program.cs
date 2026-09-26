@@ -1,9 +1,15 @@
-﻿using SweetBakeryApp.Models;
+﻿using SweetBakeryApp.Data;
+using SweetBakeryApp.Models;
 using SweetBakeryApp.Services;
 
-MenuService menuService = new();
-CashierService cashierService = new();
-KitchenService kitchenService = new();
+using BakeryDbContext dbContext = new();
+
+MenuService menuService = new(dbContext);
+CashierService cashierService = new(dbContext);
+KitchenService kitchenService = new(dbContext);
+
+menuService.SeedInitialMenu();
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 bool isRunning = true;
 
 while (isRunning)
@@ -13,6 +19,8 @@ while (isRunning)
     Console.WriteLine("2. Tambah Menu Baru (Admin)");
     Console.WriteLine("3. Buat Pesanan Baru (Kasir)");
     Console.WriteLine("4. Lihat Daftar Antrian Pesanan");
+    Console.WriteLine("5. Proses Pesanan (Dapur)");
+    Console.WriteLine("6. Lihat Produk Siap Saji");
     Console.WriteLine("0. Keluar");
     Console.Write("Pilih menu: ");
 
@@ -163,6 +171,22 @@ while (isRunning)
             else
             {
                 Console.WriteLine("✗ Nomor antrean tidak valid.");
+            }
+            break;
+
+        case "6":
+            Console.WriteLine("--- DAFTAR PRODUK SIAP SAJI ---");
+            var bakedList = kitchenService.GetReadyProducts();
+            if (bakedList.Count == 0)
+            {
+                Console.WriteLine("Belum ada produk yang selesai dimasak.");
+            }
+            else
+            {
+                foreach (var p in bakedList)
+                {
+                    Console.WriteLine($"- {p.Name} | Metode: {p.Method} | Dimasak pada: {p.PreparedAt:HH:mm:ss}");
+                }
             }
             break;
 
