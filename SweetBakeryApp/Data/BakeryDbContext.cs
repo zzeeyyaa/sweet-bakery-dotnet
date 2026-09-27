@@ -5,6 +5,13 @@ namespace SweetBakeryApp.Data;
 
 public class BakeryDbContext : DbContext
 {
+
+    //contructor for web
+    public BakeryDbContext(DbContextOptions<BakeryDbContext> options) : base(options) { }
+
+    //contructor default for migration tool
+    public BakeryDbContext() { }
+
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<OrderTicket> OrderTickets => Set<OrderTicket>();
     public DbSet<BakedProduct> BakedProducts => Set<BakedProduct>();
@@ -12,8 +19,12 @@ public class BakeryDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // base.OnConfiguring(optionsBuilder);
-        string connectionString = "Server=localhost\\SQLEXPRESS;Database=SweetBakeryDb;Trusted_Connection=True;TrustServerCertificate=True;";
-        optionsBuilder.UseSqlServer(connectionString);
+        // string connectionString = "Server=localhost\\SQLEXPRESS;Database=SweetBakeryDb;Trusted_Connection=True;TrustServerCertificate=True;";
+        // optionsBuilder.UseSqlServer(connectionString);
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=SweetBakeryDb;Trusted_Connection=True;TrustServerCertificate=True;");
+        }
 
     }
 
