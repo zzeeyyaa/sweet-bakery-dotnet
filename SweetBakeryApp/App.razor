@@ -1,0 +1,12 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        @* <RouteView RouteData="@routeData" /> *@
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Shared.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <div class="flex items-center justify-center min-h-screen">
+            <p class="text-xl text-stone-600">Halaman tidak ditemukan.</p>
+        </div>
+    </NotFound>
+</Router>

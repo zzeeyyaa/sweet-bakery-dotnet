@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+
+<div class="min-h-screen bg-amber-50/50 flex flex-col font-sans">
+    <!-- Navbar Global -->
+    <header class="bg-white border-b border-amber-100 shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex justify-between items-center h-16">
+            <!-- Brand / Logo -->
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🧁</span>
+                <span class="font-black text-amber-900 text-lg tracking-tight">Sweet Bakery</span>
+            </div>
+
+            <!-- Tombol Navigasi Halaman -->
+            <nav class="flex items-center gap-2">
+                <NavLink href="" Match="NavLinkMatch.All" ActiveClass="bg-amber-600 text-white shadow-sm"
+                         class="px-4 py-2 rounded-xl text-sm font-semibold text-stone-600 hover:text-amber-900 hover:bg-amber-50 transition">
+                    📋 Kelola Menu
+                </NavLink>
+
+                <NavLink href="cashier" ActiveClass="bg-amber-600 text-white shadow-sm"
+                         class="px-4 py-2 rounded-xl text-sm font-semibold text-stone-600 hover:text-amber-900 hover:bg-amber-50 transition">
+                    🛒 Kasir (POS)
+                </NavLink>
+
+                <NavLink href="kitchen" ActiveClass="bg-amber-600 text-white shadow-sm"
+                         class="px-4 py-2 rounded-xl text-sm font-semibold text-stone-600 hover:text-amber-900 hover:bg-amber-50 transition">
+                    👨‍🍳 Layar Dapur
+                </NavLink>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Konten Halaman (Index / Cashier / Kitchen akan masuk di sini) -->
+    <main class="flex-1">
+        @Body
+    </main>
+</div>

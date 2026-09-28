@@ -35,4 +35,23 @@ public class KitchenService(BakeryDbContext context)
         .ThenInclude(t=>t.Item)
         .OrderByDescending(p=>p.PreparedAt)];
     }
+
+    //get active ticket
+    public List<OrderTicket> GetActiveTickets()
+    {
+        return [.. context.OrderTickets
+        .Include(t=>t.Item)
+        .Where(t=>t.Status !=OrderStatus.Completed)
+        .OrderBy(t=>t.Status)];
+    }
+
+    public void UpdateTicketStatus(Guid ticketId, OrderStatus newStatus)
+    {
+        var ticket = context.OrderTickets.Find(ticketId);
+        if (ticket != null)
+        {
+            ticket.Status = newStatus;
+            context.SaveChanges();
+        }
+    }
 }

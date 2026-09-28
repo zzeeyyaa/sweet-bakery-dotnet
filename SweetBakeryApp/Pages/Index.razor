@@ -1,0 +1,107 @@
+@page "/"
+@inject MenuService MenuService
+
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <span class="text-5xl">🧁</span>
+        <h1 class="text-3xl font-extrabold text-amber-900 tracking-tight sm:text-4xl mt-3">
+            Sweet Bakery Dashboard
+        </h1>
+        <p class="mt-2 text-stone-600">Kelola menu dan harga kue secara interaktif.</p>
+    </div>
+
+    <!-- Form Tambah Menu -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 mb-8">
+        <h2 class="text-lg font-bold text-amber-900 mb-4">Tambah Menu Baru</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <input type="text" placeholder="Nama Kue" @bind="newMenuName"
+                   class="border border-stone-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+
+            <input type="number" placeholder="Harga (Rp)" @bind="newMenuPrice"
+                   class="border border-stone-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+
+            <button @onclick="HandleAddMenu"
+                    class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-2 rounded-xl transition duration-150 shadow">
+                + Tambah Menu
+            </button>
+        </div>
+        @if (!string.IsNullOrEmpty(feedbackMessage))
+        {
+            <p class="mt-2 text-sm text-green-600 font-medium">@feedbackMessage</p>
+        }
+    </div>
+
+    <!-- Tabel Daftar Menu -->
+    <div class="bg-white rounded-2xl shadow-md border border-amber-100 overflow-hidden">
+        <table class="min-w-full divide-y divide-amber-100">
+            <thead class="bg-amber-100/60">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                        Nama Menu
+                    </th>
+                    <th class="px-6 py-4 text-right text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                        Harga Satuan
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-100 bg-white">
+                @if (menuItems == null || !menuItems.Any())
+                {
+                    <tr>
+                        <td colspan="2" class="px-6 py-8 text-center text-stone-400">
+                            Belum ada menu yang terdaftar.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in menuItems)
+                    {
+                        <tr class="hover:bg-amber-50/50 transition-colors duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-900">
+                                @item.Name
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-amber-700">
+                                Rp@(item.Price.ToString("N0"))
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<MenuItem> menuItems = new();
+    private string newMenuName = string.Empty;
+    private decimal newMenuPrice;
+    private string feedbackMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        LoadMenu();
+    }
+
+    private void LoadMenu()
+    {
+        menuItems = MenuService.GetAllMenu();
+    }
+
+    private void HandleAddMenu()
+    {
+        if (string.IsNullOrWhiteSpace(newMenuName) || newMenuPrice <= 0)
+        {
+            feedbackMessage = "Nama kue dan harga harus diisi dengan benar!";
+            return;
+        }
+
+        MenuService.AddNewMenu(newMenuName, newMenuPrice);
+        newMenuName = string.Empty;
+        newMenuPrice = 0;
+        feedbackMessage = "Menu berhasil ditambahkan!";
+
+        LoadMenu();
+    }
+}

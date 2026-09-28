@@ -220,7 +220,10 @@ builder.Services.AddScoped<CashierService>();
 builder.Services.AddScoped<KitchenService>();
 
 // 4. Tambahkan fitur MVC (Controllers & Views)
-builder.Services.AddControllersWithViews();
+// builder.Services.AddControllersWithViews();
+
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
 
 var app = builder.Build();
 
@@ -234,7 +237,7 @@ using (var scope = app.Services.CreateScope())
 // Konfigurasi HTTP Request Pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
@@ -242,11 +245,13 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseAuthorization();
+// app.UseAuthorization();
 
 // Route default: arahkan langsung ke MenuController
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Menu}/{action=Index}/{id?}");
+// app.MapControllerRoute(
+//     name: "default",
+//     pattern: "{controller=Menu}/{action=Index}/{id?}");
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
 
 app.Run();

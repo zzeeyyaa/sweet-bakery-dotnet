@@ -1,0 +1,31 @@
+@page "/"
+@namespace SweetBakeryApp.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sweet Bakery - Modern Blazor</title>
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-amber-50 min-h-screen text-stone-800 antialiased">
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+    <div id="blazor-error-ui"
+         class="hidden fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg">
+        Terjadi kesalahan sistem. Silakan refresh halaman.
+    </div>
+
+    <!-- Runtime Engine Blazor -->
+    <script src="_framework/blazor.server.js"></script>
+</body>
+
+</html>
