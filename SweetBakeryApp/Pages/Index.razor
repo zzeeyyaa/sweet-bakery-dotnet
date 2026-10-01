@@ -1,107 +1,176 @@
 @page "/"
-@inject MenuService MenuService
 
-<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="text-center mb-10">
-        <span class="text-5xl">🧁</span>
-        <h1 class="text-3xl font-extrabold text-amber-900 tracking-tight sm:text-4xl mt-3">
-            Sweet Bakery Dashboard
-        </h1>
-        <p class="mt-2 text-stone-600">Kelola menu dan harga kue secara interaktif.</p>
-    </div>
-
-    <!-- Form Tambah Menu -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 mb-8">
-        <h2 class="text-lg font-bold text-amber-900 mb-4">Tambah Menu Baru</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <input type="text" placeholder="Nama Kue" @bind="newMenuName"
-                   class="border border-stone-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
-
-            <input type="number" placeholder="Harga (Rp)" @bind="newMenuPrice"
-                   class="border border-stone-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none" />
-
-            <button @onclick="HandleAddMenu"
-                    class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-2 rounded-xl transition duration-150 shadow">
-                + Tambah Menu
+<div class="max-w-5xl mx-auto py-8 px-4 sm:px-6">
+    <!-- Header & Navigasi Tab Admin -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-amber-900">Manajemen Master Data</h1>
+            <p class="text-sm text-stone-500">Kelola katalog kue serta pengelompokan kategori produk.</p>
+        </div>
+        
+        <div class="flex bg-amber-100/70 p-1 rounded-xl">
+            <button @onclick='() => activeTab = "menu"'
+                    class="px-4 py-1.5 text-xs font-bold rounded-lg transition @(activeTab == "menu" ? "bg-white text-amber-900 shadow-sm" : "text-stone-600 hover:text-amber-900")">
+                🍰 Daftar Menu (@menuItems.Count)
+            </button>
+            <button @onclick='() => activeTab = "category"'
+                    class="px-4 py-1.5 text-xs font-bold rounded-lg transition @(activeTab == "category" ? "bg-white text-amber-900 shadow-sm" : "text-stone-600 hover:text-amber-900")">
+                🏷️️ Kategori (@categories.Count)
             </button>
         </div>
-        @if (!string.IsNullOrEmpty(feedbackMessage))
-        {
-            <p class="mt-2 text-sm text-green-600 font-medium">@feedbackMessage</p>
-        }
     </div>
 
-    <!-- Tabel Daftar Menu -->
-    <div class="bg-white rounded-2xl shadow-md border border-amber-100 overflow-hidden">
-        <table class="min-w-full divide-y divide-amber-100">
-            <thead class="bg-amber-100/60">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-amber-900 uppercase tracking-wider">
-                        Nama Menu
-                    </th>
-                    <th class="px-6 py-4 text-right text-xs font-semibold text-amber-900 uppercase tracking-wider">
-                        Harga Satuan
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-100 bg-white">
-                @if (menuItems == null || !menuItems.Any())
-                {
+    @if (!string.IsNullOrEmpty(feedbackMessage))
+    {
+        <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm font-medium">
+            @feedbackMessage
+        </div>
+    }
+
+    @if (activeTab == "menu")
+    {
+        <!-- FORM MENU -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 mb-8">
+            <h2 class="text-base font-bold text-stone-800 mb-4">
+                @(editingMenuId.HasValue ? "✏️ Edit Menu Kue" : "➕ Tambah Menu Baru")
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <input type="text" placeholder="Nama Menu" @bind="menuName"
+                       class="border border-stone-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+
+                <select @bind="selectedCategoryId"
+                        class="border border-stone-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white">
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat.Id">@cat.Name</option>
+                    }
+                </select>
+
+                <input type="number" placeholder="Harga Satuan (Rp)" @bind="menuPrice"
+                       class="border border-stone-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+
+                <div class="flex gap-2">
+                    <button @onclick="SaveMenu"
+                            class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow">
+                        @(editingMenuId.HasValue ? "Simpan" : "Tambah")
+                    </button>
+                    @if (editingMenuId.HasValue)
+                    {
+                        <button @onclick="ResetMenuForm"
+                                class="px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2.5 rounded-xl text-sm transition">
+                            Batal
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL MENU -->
+        <div class="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden">
+            <table class="min-w-full divide-y divide-amber-100">
+                <thead class="bg-amber-50/70">
                     <tr>
-                        <td colspan="2" class="px-6 py-8 text-center text-stone-400">
-                            Belum ada menu yang terdaftar.
-                        </td>
+                        <th class="px-6 py-3.5 text-left text-xs font-semibold text-amber-900 uppercase">Nama Produk</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-semibold text-amber-900 uppercase">Kategori</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-semibold text-amber-900 uppercase">Harga</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-semibold text-amber-900 uppercase">Aksi</th>
                     </tr>
-                }
-                else
-                {
+                </thead>
+                <tbody class="divide-y divide-stone-100">
                     @foreach (var item in menuItems)
                     {
-                        <tr class="hover:bg-amber-50/50 transition-colors duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-900">
-                                @item.Name
+                        <tr class="hover:bg-amber-50/40 transition">
+                            <td class="px-6 py-4 text-sm font-semibold text-stone-800">@item.Name</td>
+                            <td class="px-6 py-4 text-sm text-stone-600">
+                                <span class="bg-stone-100 text-stone-700 px-2.5 py-1 rounded-md text-xs font-medium">
+                                    @(item.Category?.Name ?? "-")
+                                </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-amber-700">
+                            <td class="px-6 py-4 text-sm text-right font-bold text-amber-800">
                                 Rp@(item.Price.ToString("N0"))
+                            </td>
+                            <td class="px-6 py-4 text-sm text-center">
+                                <div class="inline-flex gap-2">
+                                    <button @onclick="() => EditMenu(item)"
+                                            class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold px-2.5 py-1.5 rounded-lg border border-amber-200 transition">
+                                        Edit
+                                    </button>
+                                    <button @onclick="() => DeleteMenu(item.Id)"
+                                            class="text-xs bg-red-50 hover:bg-red-100 text-red-700 font-semibold px-2.5 py-1.5 rounded-lg border border-red-200 transition">
+                                        Hapus
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <!-- FORM KATEGORI -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 mb-8">
+            <h2 class="text-base font-bold text-stone-800 mb-4">
+                @(editingCategoryId.HasValue ? "✏️ Edit Kategori" : "➕ Tambah Kategori Baru")
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <input type="text" placeholder="Nama Kategori (contoh: Pastry)" @bind="categoryName"
+                       class="border border-stone-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+
+                <input type="text" placeholder="Deskripsi Singkat" @bind="categoryDescription"
+                       class="border border-stone-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+
+                <div class="flex gap-2">
+                    <button @onclick="SaveCategory"
+                            class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow">
+                        @(editingCategoryId.HasValue ? "Simpan" : "Tambah")
+                    </button>
+                    @if (editingCategoryId.HasValue)
+                    {
+                        <button @onclick="ResetCategoryForm"
+                                class="px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2.5 rounded-xl text-sm transition">
+                            Batal
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL KATEGORI -->
+        <div class="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden">
+            <table class="min-w-full divide-y divide-amber-100">
+                <thead class="bg-amber-50/70">
+                    <tr>
+                        <th class="px-6 py-3.5 text-left text-xs font-semibold text-amber-900 uppercase">Nama Kategori</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-semibold text-amber-900 uppercase">Deskripsi</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-semibold text-amber-900 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100">
+                    @foreach (var cat in categories)
+                    {
+                        <tr class="hover:bg-amber-50/40 transition">
+                            <td class="px-6 py-4 text-sm font-semibold text-stone-800">@cat.Name</td>
+                            <td class="px-6 py-4 text-sm text-stone-500">@cat.Description</td>
+                            <td class="px-6 py-4 text-sm text-center">
+                                <div class="inline-flex gap-2">
+                                    <button @onclick="() => EditCategory(cat)"
+                                            class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold px-2.5 py-1.5 rounded-lg border border-amber-200 transition">
+                                        Edit
+                                    </button>
+                                    <button @onclick="() => DeleteCategory(cat.Id)"
+                                            class="text-xs bg-red-50 hover:bg-red-100 text-red-700 font-semibold px-2.5 py-1.5 rounded-lg border border-red-200 transition">
+                                        Hapus
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
-
-@code {
-    private List<MenuItem> menuItems = new();
-    private string newMenuName = string.Empty;
-    private decimal newMenuPrice;
-    private string feedbackMessage = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        LoadMenu();
-    }
-
-    private void LoadMenu()
-    {
-        menuItems = MenuService.GetAllMenu();
-    }
-
-    private void HandleAddMenu()
-    {
-        if (string.IsNullOrWhiteSpace(newMenuName) || newMenuPrice <= 0)
-        {
-            feedbackMessage = "Nama kue dan harga harus diisi dengan benar!";
-            return;
-        }
-
-        MenuService.AddNewMenu(newMenuName, newMenuPrice);
-        newMenuName = string.Empty;
-        newMenuPrice = 0;
-        feedbackMessage = "Menu berhasil ditambahkan!";
-
-        LoadMenu();
-    }
-}

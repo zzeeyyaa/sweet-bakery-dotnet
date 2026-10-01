@@ -12,6 +12,7 @@ public class BakeryDbContext : DbContext
     //contructor default for migration tool
     public BakeryDbContext() { }
 
+    public DbSet<Category> Categories => Set<Category>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<OrderTicket> OrderTickets => Set<OrderTicket>();
     public DbSet<BakedProduct> BakedProducts => Set<BakedProduct>();
