@@ -1,0 +1,24 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+
+services:
+  sweetbakeryapp:
+    image: sweetbakeryapp
+    build:
+      context: .
+      dockerfile: SweetBakeryApp/Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Connection string ini mengarah ke container "db"
+      - ConnectionStrings__DefaultConnection=Server=db;Database=SweetBakeryDb;User Id=sa;Password=PasswordKuat123!;TrustServerCertificate=True;
+    depends_on:
+      - db # Memastikan database menyala lebih dulu sebelum web app
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=PasswordKuat123!
+    ports:
+      - "1433:1433"

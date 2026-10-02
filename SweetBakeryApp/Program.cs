@@ -211,8 +211,20 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // 2. Registrasi DbContext ke SQL Server
+// builder.Services.AddDbContext<BakeryDbContext>(options =>
+//     options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<BakeryDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions =>
+        {
+            // Memerintahkan aplikasi untuk mencoba ulang koneksi jika database belum siap
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5, // Coba maksimal 5 kali
+                maxRetryDelay: TimeSpan.FromSeconds(10), // Jeda tiap percobaan
+                errorNumbersToAdd: null);
+        })
+);
 
 // 3. Registrasi Services
 builder.Services.AddScoped<MenuService>();
@@ -230,9 +242,14 @@ var app = builder.Build();
 // Jalankan Seeding awal jika database masih kosong
 using (var scope = app.Services.CreateScope())
 {
+    // 1. Bangun rumahnya dulu (Buat database & tabel)
+    var db = scope.ServiceProvider.GetRequiredService<BakeryDbContext>();
+    db.Database.Migrate();
+
     var menuService = scope.ServiceProvider.GetRequiredService<MenuService>();
     menuService.SeedInitialMenu();
 }
+
 
 // Konfigurasi HTTP Request Pipeline
 if (!app.Environment.IsDevelopment())
@@ -253,5 +270,8 @@ app.UseRouting();
 //     pattern: "{controller=Menu}/{action=Index}/{id?}");
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+
+
 
 app.Run();
